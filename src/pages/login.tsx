@@ -1,122 +1,109 @@
-import ResetPasswordForm from "@/src/components/form/login/resetPasswordForm";
-import SignInForm from "@/src/components/form/login/signInForm";
-import SignUpForm from "@/src/components/form/signUp";
-import LoginPortal from "@/src/components/loginPortal";
+import LoginCard from "../components/login/card";
+import LoginPortal from "@/src/components/login/portal";
 import { NextPage } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import ResendEmail from "../components/form/login/resendEmailForm";
 
-// TODO: remove this font as it is for dev purpose
-import { Roboto_Mono } from "@next/font/google";
-const customFont = Roboto_Mono({ weight: "400", subsets: ["latin"] });
-
-const CARD_SWITCH_DURATION = 1000;
-const CSD_IN_STRING = `${CARD_SWITCH_DURATION}ms`;
-
-type CardPosition = {
-    first: {
-        top: string;
-        transitionDuration: string;
-    };
-    second: {
-        top: string;
-        transitionDuration: string;
-    };
+type CardForms = "signIn" | "resetPassword" | "signUp" | "resendEmail";
+type CardStyle = {
+    top: string;
+    transitionDuration: string;
+    transformOrigin: string;
+    transform: string;
 };
 
-type SwitchCardFunction = () => void;
+const CARD_SWITCH_DURATION = 1000;
+const CARD_TOP_STYLE: CardStyle = {
+        top: "-50%",
+        transitionDuration: "0s",
+        transformOrigin: "",
+        transform: `translate(-50%, -50%) rotateX(50deg) scaleX(0.1)`,
+    },
+    CARD_NEUTRAL_STYLE: CardStyle = {
+        top: "50%",
+        transitionDuration: `${CARD_SWITCH_DURATION}ms`,
+        transformOrigin: "bottom",
+        transform: `translate(-50%, -50%) rotateX(0deg) scaleX(1)`,
+    },
+    CARD_BOTTOM_STYLE: CardStyle = {
+        top: "150%",
+        transitionDuration: `${CARD_SWITCH_DURATION}ms`,
+        transformOrigin: "top",
+        transform: `translate(-50%, -50%) rotateX(-50deg) scaleX(0.1)`,
+    };
 
 const SignIn: NextPage = () => {
     const {
         query,
     }: {
         query: {
-            whichForm?: "signIn" | "resetPassword" | "signUp" | "resendEmail";
+            whichForm?: CardForms;
             redirectUrl?: string;
         };
     } = useRouter();
 
-    const [whichForm, setWhichForm] = useState<
-        "signIn" | "resetPassword" | "signUp" | "resendEmail"
-    >(query.whichForm || "signIn");
+    const [whichForm, setWhichForm] = useState<CardForms>(
+        query.whichForm || "signIn"
+    );
 
-    const [cardPosition, setCardPosition] = useState<CardPosition>({
-        first: {
-            top: "50%",
-            transitionDuration: CSD_IN_STRING,
-        },
-        second: {
-            top: "-50%",
-            transitionDuration: CSD_IN_STRING,
-        },
+    const [cardStyle, setCardStyle] = useState<{
+        signIn: CardStyle;
+        signUp: CardStyle;
+        resetPassword: CardStyle;
+        resendEmail: CardStyle;
+    }>({
+        signIn: CARD_TOP_STYLE,
+        resetPassword: CARD_TOP_STYLE,
+        signUp: CARD_TOP_STYLE,
+        resendEmail: CARD_TOP_STYLE,
+        [whichForm]: CARD_NEUTRAL_STYLE,
     });
 
-    const switchCard: SwitchCardFunction = () => {
-        setCardPosition((prev) => ({
-            first: {
-                top: prev.first.top === "50%" ? "150%" : "50%",
-                transitionDuration: CSD_IN_STRING,
-            },
-            second: {
-                top: prev.second.top === "50%" ? "150%" : "50%",
-                transitionDuration: CSD_IN_STRING,
-            },
+    const changeCard: (newForm: CardForms) => void = (newForm) => {
+        setCardStyle((prev) => ({
+            ...prev,
+            [whichForm]: CARD_BOTTOM_STYLE,
+            [newForm]: CARD_NEUTRAL_STYLE,
         }));
 
         setTimeout(() => {
-            setCardPosition((prev) => ({
-                first: {
-                    top: prev.first.top === "150%" ? "-50%" : prev.first.top,
-                    transitionDuration: "0s",
-                },
-                second: {
-                    top: prev.second.top === "150%" ? "-50%" : prev.second.top,
-                    transitionDuration: "0s",
-                },
+            setCardStyle((prev) => ({
+                ...prev,
+                [whichForm]: CARD_TOP_STYLE,
             }));
-        }, CARD_SWITCH_DURATION);
+        }, CARD_SWITCH_DURATION * 0.9);
+
+        setWhichForm(newForm);
     };
 
     return (
-        // TODO: font usage
-        // 92 vh as there was some footer in viewport
+        // TODO:92 vh as there was some footer in viewport
         <>
             <div className="h-16"></div>
             <div
-                className={`${customFont.className} min-h-[92vh] min-w-screen bg-pink-700 flex flex-col justify-between relative overflow-hidden`}>
+                className={`min-h-[92vh] min-w-screen bg-gray-600 flex flex-col justify-between relative overflow-hidden [transform-style:preserve-3d] [perspective:500px]`}>
                 <LoginPortal isTop={true} />
-                <div
-                    className="py-3 absolute top-2/4 left-2/4 -translate-x-2/4 -translate-y-2/4 transition-[top]  duration-1000 ease-in-out z-[1]"
-                    style={cardPosition.first}>
-                    <div
-                        className={`bg-[#f3e9d1] text-[#6f5925] px-4 py-6 w-72 rounded-3xl`}>
-                        {whichForm === "resetPassword" ? (
-                            <ResetPasswordForm setWhichForm={setWhichForm} />
-                        ) : (
-                            <SignInForm
-                                redirectUrl={query.redirectUrl}
-                                setWhichForm={setWhichForm}
-                                switchCard={switchCard}
-                            />
-                        )}
-                    </div>
-                </div>
-                <div
-                    className="py-3 absolute top-2/4 left-2/4 -translate-x-2/4 -translate-y-2/4 transition-[top]  duration-1000 ease-in-out z-[1]"
-                    style={cardPosition.second}>
-                    <div
-                        className={`bg-[#f3e9d1] text-[#6f5925] px-4 py-6 w-72 rounded-3xl`}>
-                        {whichForm === "resendEmail" ? (
-                            <ResendEmail setWhichForm={setWhichForm} />
-                        ) : (
-                            <SignUpForm
-                                setWhichForm={setWhichForm}
-                                switchCard={switchCard}
-                            />
-                        )}
-                    </div>
-                </div>
+                <LoginCard
+                    whichForm="signIn"
+                    cardStyle={cardStyle.signIn}
+                    setWhichForm={changeCard}
+                    redirectUrl={query.redirectUrl}
+                />
+                <LoginCard
+                    whichForm="resetPassword"
+                    cardStyle={cardStyle.resetPassword}
+                    setWhichForm={changeCard}
+                />
+                <LoginCard
+                    whichForm="signUp"
+                    cardStyle={cardStyle.signUp}
+                    setWhichForm={changeCard}
+                />
+                <LoginCard
+                    whichForm="resendEmail"
+                    cardStyle={cardStyle.resendEmail}
+                    setWhichForm={changeCard}
+                />
                 <LoginPortal isTop={false} />
             </div>
         </>
@@ -124,4 +111,4 @@ const SignIn: NextPage = () => {
 };
 
 export default SignIn;
-export type { SwitchCardFunction };
+export type { CardForms, CardStyle };

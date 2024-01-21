@@ -5,20 +5,17 @@ import { BiErrorCircle } from "react-icons/bi";
 import Button from "../../button";
 import Spinner from "../../spinner";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
-import { SwitchCardFunction } from "@/src/pages/login";
 
 type SignInFormProps = {
     setWhichForm: (
         whichForm: "signIn" | "resetPassword" | "signUp" | "resendEmail"
     ) => void;
     redirectUrl?: string;
-    switchCard: SwitchCardFunction;
 };
 
 const SignInForm: FunctionComponent<SignInFormProps> = ({
     setWhichForm,
     redirectUrl,
-    switchCard,
 }) => {
     const [userInfo, setUserInfo] = useState({ email: "", password: "" });
     const [error, setError] = useState<string>("");
@@ -134,14 +131,13 @@ const SignInForm: FunctionComponent<SignInFormProps> = ({
                         </div>
                     </div>
                 )}
-                <div className="flex flex-col md:mt-2 mt-5 relative text-center">
+                <div className="flex flex-col md:mt-2 mt-3 relative text-center">
                     <hr className="my-3 border-[#6f5925]" />
                     <h4 className="absolute top-0.5 translate-x-1/2 w-max mx-auto bg-[#f3e9d1] rounded-full text-[#6f5925] right-1/2 md:px-2 px-3 text-sm">
                         New here?
                     </h4>
                     <Button
                         onClick={() => {
-                            switchCard();
                             setWhichForm("signUp");
                         }}
                         type="button"
